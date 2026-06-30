@@ -19,6 +19,7 @@ PRODUCT_PRODUCT_PROPERTIES += \
     ro.camera.disableHeicUltraHDR=1 \
     oplus.software.camera.10bit=1 \
     vendor.camera.aux.packagelist=com.oplus.camera \
+    vendor.camera.skip_unconfigure.packagelist=com.oplus.camera \
     ro.oplus.camera.facing.front.need.disable.nfc=1 \
     ro.oplus.camera.portrait.center.switch=oplus.switch.portrait.center \
     ro.oplus.camera.portrait_center.prefix=oplus.portrait.center. \
