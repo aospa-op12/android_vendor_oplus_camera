@@ -55,6 +55,12 @@ lib_fixups: lib_fixups_user_type = {
 }
 
 blob_fixups = {
+    'system_ext/lib64/libAPSClient-cmd-jni.so': blob_fixup()
+        .binary_regex_replace(b'libHeifEncoderWrapper\\.so', b'xibHeifEncoderWrapper.so')
+        .binary_regex_replace(b'libNativeWinBuffExchange\\.so', b'xibNativeWinBuffExchange.so'),
+    'system_ext/lib64/libAPSClient-cmd-jni-extension.oplus.so': blob_fixup()
+        .binary_regex_replace(b'libHeifEncoderWrapper\\.so', b'xibHeifEncoderWrapper.so')
+        .binary_regex_replace(b'libNativeWinBuffExchange\\.so', b'xibNativeWinBuffExchange.so'),
     'system_ext/lib64/libcsextimpl.so': blob_fixup()
         .replace_needed('android.hardware.camera.device-V3-ndk.so', 'android.hardware.camera.device-V4-ndk.so')
         .replace_needed('android.hardware.camera.provider-V3-ndk.so', 'android.hardware.camera.provider-V4-ndk.so')
