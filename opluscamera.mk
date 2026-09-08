@@ -1,14 +1,5 @@
-# Blob dependencies
-PRODUCT_PACKAGES += \
-    android.hardware.graphics.common-V3-ndk.vendor
-
 # Framework
-# PRODUCT_BOOT_JARS += \
-#    oplus-framework
-
-# Init
-#PRODUCT_PACKAGES += \
-#    init.oplus.camera.rc
+$(call inherit-product, hardware/oplus/oplus-fwk/oplus-fwk.mk)
 
 # Permissions
 PRODUCT_COPY_FILES += \

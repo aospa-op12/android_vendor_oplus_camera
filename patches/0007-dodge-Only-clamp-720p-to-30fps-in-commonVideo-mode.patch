@@ -1,40 +1,24 @@
-From b061b8c6af0b7696a02e77dd77a6c31ee139133d Mon Sep 17 00:00:00 2001
+From d45bbdbd841319e3b11c5549d7588579e42f7573 Mon Sep 17 00:00:00 2001
 From: Hecheng Yu <kde-yyds@qq.com>
 Date: Sat, 1 Aug 2026 14:26:04 +0800
-Subject: [PATCH 7/7] dodge: Only clamp 720p to 30fps in commonVideo mode
+Subject: [PATCH 7/8] dodge: Only clamp 720p to 30fps in commonVideo mode
 
 The 720p cap from the previous patches is keyed purely on the 1280 width /
 "video_size_720p" string, but slow motion also records at 720p - at
 240/480fps. Those resolutions share the same 1280 width, so the 30fps clamp
 was breaking 720p 240/480fps slow motion on OxygenOS 16.0.8.301.
-
-Gate every 720p cap on the current capture mode being "commonVideo":
-
-  DcsUtil.getCurrentMode() == "commonVideo"
-
-applied at:
-
-  u0.A(II)                  only re-apply 30fps at 1280 width in commonVideo
-  u0.v(CamcorderProfile)    only clamp profile to 30 at 1280 width in
-                            commonVideo
-  g.buildSession            only send video_30fps for video_size_720p in
-                            commonVideo
-
-The 8K caps are left ungated: 8K slow motion does not exist, so there is no
-width collision. Result: 720p30 works when coming from 4K120 in normal
-video mode, and 720p 240/480fps slow motion is unaffected.
 ---
- smali_classes12/ak/u0.smali | 24 ++++++++++++++++++++++++
- smali_classes28/ja/g.smali  | 12 ++++++++++++
+ smali_classes12/ck/u0.smali | 24 ++++++++++++++++++++++++
+ smali_classes29/la/e.smali  | 12 ++++++++++++
  2 files changed, 36 insertions(+)
 
-diff --git a/smali_classes12/ak/u0.smali b/smali_classes12/ak/u0.smali
-index 4197d71..92c85c2 100644
---- a/smali_classes12/ak/u0.smali
-+++ b/smali_classes12/ak/u0.smali
+diff --git a/smali_classes12/ck/u0.smali b/smali_classes12/ck/u0.smali
+index dc91fa21..26260eb1 100644
+--- a/smali_classes12/ck/u0.smali
++++ b/smali_classes12/ck/u0.smali
 @@ -622,6 +622,18 @@
  
-     if-ne p1, v0, :cond_720
+     if-ne p1, v0, :cond_a12_720_done
  
 +    invoke-static {}, Lcom/oplus/camera/statistics/DcsUtil;->getCurrentMode()Ljava/lang/String;
 +
@@ -42,18 +26,18 @@ index 4197d71..92c85c2 100644
 +
 +    const-string v1, "commonVideo"
 +
-+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
++    invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
 +
 +    move-result v0
 +
-+    if-eqz v0, :cond_720
++    if-eqz v0, :cond_a12_720_done
 +
      const/16 v0, 0x1e
  
-     invoke-virtual {p0, v0}, Lak/u0;->y(I)V
-@@ -6889,6 +6901,18 @@
+     invoke-virtual {p0, v0}, Lck/u0;->y(I)V
+@@ -6893,6 +6905,18 @@
  
-     if-ne v0, v1, :cond_720
+     if-ne v0, v1, :cond_a12_profile_720_done
  
 +    invoke-static {}, Lcom/oplus/camera/statistics/DcsUtil;->getCurrentMode()Ljava/lang/String;
 +
@@ -61,38 +45,38 @@ index 4197d71..92c85c2 100644
 +
 +    const-string v1, "commonVideo"
 +
-+    invoke-virtual {v2, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
++    invoke-virtual {v1, v2}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
 +
 +    move-result v2
 +
-+    if-eqz v2, :cond_720
++    if-eqz v2, :cond_a12_profile_720_done
 +
      iget v0, p1, Landroid/media/CamcorderProfile;->videoFrameRate:I
  
      const/16 v1, 0x1e
-diff --git a/smali_classes28/ja/g.smali b/smali_classes28/ja/g.smali
-index c833d87..9455e07 100644
---- a/smali_classes28/ja/g.smali
-+++ b/smali_classes28/ja/g.smali
+diff --git a/smali_classes29/la/e.smali b/smali_classes29/la/e.smali
+index fd9e7766..043057cd 100644
+--- a/smali_classes29/la/e.smali
++++ b/smali_classes29/la/e.smali
 @@ -1889,6 +1889,18 @@
  
-     if-eqz v2, :cond_24
+     if-eqz v14, :cond_a12_fps_8k_check
  
 +    invoke-static {}, Lcom/oplus/camera/statistics/DcsUtil;->getCurrentMode()Ljava/lang/String;
 +
-+    move-result-object v1
++    move-result-object v14
 +
-+    const-string v2, "commonVideo"
++    const-string v1, "commonVideo"
 +
-+    invoke-virtual {v1, v2}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
++    invoke-virtual {v1, v14}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
 +
-+    move-result v1
++    move-result v14
 +
-+    if-eqz v1, :cond_24
++    if-eqz v14, :cond_a12_fps_8k_check
 +
-     :cond_30fps
      const-string v12, "video_30fps"
  
+     :cond_a12_fps_8k_check
 -- 
 2.55.0
 

@@ -1,71 +1,39 @@
-From a634e66c9fc9f34f1506cec97d925c4d2121a408 Mon Sep 17 00:00:00 2001
+From a3e3cd51d23cd7bad9692d42cd8691430b230348 Mon Sep 17 00:00:00 2001
 From: Oscar <osm1019@gmail.com>
 Date: Sat, 1 Aug 2026 11:14:10 +0800
-Subject: [PATCH 3/7] dodge: Clamp 8K video to 30fps to fix freeze after using
+Subject: [PATCH 3/8] dodge: Clamp 8K video to 30fps to fix freeze after using
  4K120
 
 Enabling real-time 1080p/4K 120fps adds 120 to the rear_main video fps
 allow-list in camera_unit_feature_config.protobuf. That list is per-camera
 and has no per-resolution scoping, so once 120fps is selected at 4K the
-app's fps state stays 120 when switching to 8K. The UI correctly hides the
-120 option and shows "8K-30", but nothing rewrites the stored value.
-
-MediaRecorder is then configured for 7680x4320@120 and the video core
-rejects it:
-
-  msm_vidc_check_core_mbps: Hardware overloaded. needed 15552000, max 7833600
-
-8K is 129600 macroblocks/frame, so the core budget caps it near 60fps and
-120 is roughly 2x over. prepare() fails and the app retries ~23 times over
-~5.5s - that burst is the preview freeze when switching modes, and 8K
-recording fails outright.
-
-Clamp to 30fps at the three points that actually configure the recorder
-(obfuscated names from this build):
-
-  u0.A(II)                 setVideoSize runs after setVideoFrameRate, so
-                           re-apply 30fps once the 8K width is known; this
-                           is the path the mode switch takes
-  u0.v(CamcorderProfile)   clamp profile.videoFrameRate on entry, which
-                           covers the setProfile branch used when recording
-  g.buildSession           send video_30fps for the session at
-                           video_size_8k (FPSPresenter)
-
-1080p120 and 4K120 are untouched - they never reach these branches, and the
-real-time 120fps rate override is left intact. Verified on device: switching
-4K120 -> 8K now logs zero encoder failures (was 23) with no preview stall,
-and 8K30 records.
-
-This patch is the only one required on older OxygenOS releases; the 7.5fps
-and 720p issues appear with OxygenOS 16.0.8.301 and are covered by the
-following patches.
 ---
- smali_classes12/ak/u0.smali | 24 ++++++++++++++++++++++++
- smali_classes28/ja/g.smali  | 15 +++++++++++++++
- 2 files changed, 39 insertions(+)
+ smali_classes12/ck/u0.smali | 26 ++++++++++++++++++++++++++
+ smali_classes29/la/e.smali  | 15 +++++++++++++++
+ 2 files changed, 41 insertions(+)
 
-diff --git a/smali_classes12/ak/u0.smali b/smali_classes12/ak/u0.smali
-index c8abd1e..f7f9913 100644
---- a/smali_classes12/ak/u0.smali
-+++ b/smali_classes12/ak/u0.smali
-@@ -618,7 +618,16 @@
+diff --git a/smali_classes12/ck/u0.smali b/smali_classes12/ck/u0.smali
+index 54aed8f5..74f54188 100644
+--- a/smali_classes12/ck/u0.smali
++++ b/smali_classes12/ck/u0.smali
+@@ -618,6 +618,16 @@
  .method public final A(II)V
      .locals 2
  
 +    const/16 v0, 0x1e00
 +
-+    if-lt p1, v0, :cond_8k
++    if-lt p1, v0, :cond_a12_8k
 +
 +    const/16 v0, 0x1e
 +
-+    invoke-virtual {p0, v0}, Lak/u0;->y(I)V
++    invoke-virtual {p0, v0}, Lck/u0;->y(I)V
++
++    :cond_a12_8k
 +
      .line 1
-+    :cond_8k
      const/4 v0, 0x2
  
-     .line 2
-@@ -6865,7 +6874,22 @@
+@@ -6867,6 +6877,22 @@
  .method public final v(Landroid/media/CamcorderProfile;)V
      .locals 3
  
@@ -73,47 +41,47 @@ index c8abd1e..f7f9913 100644
 +
 +    const/16 v1, 0x1e00
 +
-+    if-lt v0, v1, :cond_8k
++    if-lt v0, v1, :cond_a12_profile_done
 +
 +    iget v0, p1, Landroid/media/CamcorderProfile;->videoFrameRate:I
 +
 +    const/16 v1, 0x1e
 +
-+    if-le v0, v1, :cond_8k
++    if-le v0, v1, :cond_a12_profile_done
 +
 +    iput v1, p1, Landroid/media/CamcorderProfile;->videoFrameRate:I
 +
++    :cond_a12_profile_done
++
      .line 1
-+    :cond_8k
-     iget v0, p0, Lak/u0;->v:I
+     iget v0, p0, Lck/u0;->v:I
  
-     .line 2
-diff --git a/smali_classes28/ja/g.smali b/smali_classes28/ja/g.smali
-index a9c44d8..cd90b8b 100644
---- a/smali_classes28/ja/g.smali
-+++ b/smali_classes28/ja/g.smali
-@@ -1869,6 +1869,21 @@
+diff --git a/smali_classes29/la/e.smali b/smali_classes29/la/e.smali
+index f74b9124..9cd68c04 100644
+--- a/smali_classes29/la/e.smali
++++ b/smali_classes29/la/e.smali
+@@ -1877,6 +1877,21 @@
  
-     .line 742
-     :goto_10
-+    invoke-virtual/range {p0 .. p0}, Lja/g;->o1()Ljava/lang/String;
+     .line 745
+     :goto_11
++    invoke-virtual/range {p0 .. p0}, Lla/e;->p1()Ljava/lang/String;
 +
-+    move-result-object v1
++    move-result-object v14
 +
-+    const-string v2, "video_size_8k"
++    const-string v1, "video_size_8k"
 +
-+    invoke-virtual {v2, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
++    invoke-virtual {v1, v14}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
 +
-+    move-result v1
++    move-result v14
 +
-+    if-eqz v1, :cond_24
++    if-eqz v14, :cond_a12_fps_done
 +
 +    const-string v12, "video_30fps"
 +
-+    :cond_24
++    :cond_a12_fps_done
      sget-object v1, Lcom/oplus/ocs/camera/CameraParameter;->VIDEO_FPS:Lcom/oplus/ocs/camera/CameraParameter$ConfigureKey;
  
-     .line 743
+     .line 746
 -- 
 2.55.0
 

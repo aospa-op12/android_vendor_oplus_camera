@@ -1,7 +1,8 @@
-From 8b29e4c2ebec3e294c69af27723cd26c86991059 Mon Sep 17 00:00:00 2001
+From f9e73676298f80a5ce18d14d36cf1004926a473d Mon Sep 17 00:00:00 2001
 From: realahnet <syedmusicrealise@gmail.com>
 Date: Tue, 30 Jun 2026 14:28:20 +0500
-Subject: [PATCH] facebeauty: probe /system_ext (not /product) for ProductJni
+Subject: [PATCH 2/3] facebeauty: probe /system_ext (not /product) for
+ ProductJni
 
 ---
  smali/com/oplus/camera/facebeauty/OplusFaceBeautyPreview.smali | 2 +-
@@ -21,5 +22,5 @@ index f58791b..fb54177 100644
      if-nez v0, :cond_3
  
 -- 
-2.54.0
+2.55.0
 

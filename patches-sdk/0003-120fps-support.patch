@@ -1,7 +1,7 @@
-From 8635ee4cc9cb62d6711ba76f9d622d76e4c0a579 Mon Sep 17 00:00:00 2001
+From 9b33416cbc6df676b6e950e8fc3b094d45740469 Mon Sep 17 00:00:00 2001
 From: osm1019 <osm1019@gmail.com>
 Date: Tue, 28 Jul 2026 12:59:24 +0800
-Subject: [PATCH] Unlock 120fps
+Subject: [PATCH 3/3] Unlock 120fps
 
 ---
  .../decision/OperationModeDecision.smali      | 19 +++++++++++++++++--

@@ -55,6 +55,9 @@ lib_fixups: lib_fixups_user_type = {
 }
 
 blob_fixups = {
+    'system_ext/lib64/libcsextimpl.so': blob_fixup()
+        .replace_needed('android.hardware.camera.device-V3-ndk.so', 'android.hardware.camera.device-V4-ndk.so')
+        .replace_needed('android.hardware.camera.provider-V3-ndk.so', 'android.hardware.camera.provider-V4-ndk.so'),
     'system_ext/priv-app/OplusCamera/OplusCamera.apk': blob_fixup()
         .apktool_patch('patches'),
     'system_ext/framework/com.oplus.camera.unit.sdk.jar': blob_fixup()
@@ -66,31 +69,21 @@ blob_fixups = {
             '''on post-fs-data
     mkdir /data/vendor/camera_process 0777 camera camera
     mkdir /data/vendor/camera_process/livephoto 0777 camera camera
-    mkdir /data/vendor/cam_alog 0777 camera camera
-on property:sys.camera.user.removed=*
-    #delete_recursion /data/vendor/camera_process/${sys.camera.user.removed}
-''',
+    mkdir /data/vendor/cam_alog 0777 camera camera''',
             '''on post-fs-data
     mkdir /data/vendor/camera_process 0777 camera camera
     mkdir /data/vendor/camera_process/livephoto 0777 camera camera
     mkdir /data/vendor/cam_alog 0777 camera camera
-    # APS file storage for deferred-capture jobs (matches stock init.oplus.rootdir.rc).
-    # Without these, APSFileStorage can't mkdir under system-owned /data/system,
-    # defer-job params are never persisted (keepJob "Not found in FileSystem"),
-    # and the offline metadata collapses to empty -> photo-capture crash.
     mkdir /data/system/camera_rus 0777 cameraserver cameraserver
-    mkdir /data/vendor/camera_rus 0777 camera camera
-on property:sys.camera.user.removed=*
-    #delete_recursion /data/vendor/camera_process/${sys.camera.user.removed}
-''',
-        )
+    mkdir /data/vendor/camera_rus 0777 camera camera''',
+        ),
 }  # fmt: skip
 
 namespace_imports = [
-    'vendor/oplus/camera/camera',
-    'vendor/oneplus/dodge',
-    'vendor/oneplus/sm8750-common',
     'hardware/oplus',
+    'vendor/oneplus/oneplus12',
+    'vendor/oplus/camera/camera',
+    'vendor/qcom/common/system/audio',
 ]
 
 module = ExtractUtilsModule(

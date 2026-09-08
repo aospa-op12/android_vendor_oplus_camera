@@ -1,52 +1,49 @@
-From eae89ff4541c03d75bedeaf5637f6910c733ee62 Mon Sep 17 00:00:00 2001
+From 426870780fb076405953a1e746dc6903f66efc53 Mon Sep 17 00:00:00 2001
 From: Hecheng Yu <kde-yyds@qq.com>
 Date: Sat, 1 Aug 2026 14:13:45 +0800
-Subject: [PATCH 6/7] dodge: Clamp 720p capture rate to 30fps to fix 7.5fps
+Subject: [PATCH 6/8] dodge: Clamp 720p capture rate to 30fps to fix 7.5fps
  recording
 
 The 4x-slow-motion problem of the 8K fix applies to 720p as well: after
 switching 4K120 -> 720p, CommonVideoMode.li() returns 120.0 (stale fps
 state) and MediaRecorder.setCaptureRate(120) is sent while the encoder
-outputs 30fps, producing a file that plays at 7.5fps (120/30).
-
-Extend the li() clamp so it also returns 30.0 when the video size is 720p:
-
-  com/oplus/camera/module/a.li()  if G6() == "video_size_8k"  return 30.0
-                                  if G6() == "video_size_720p" return 30.0
-
-With this, 720p30 records at the correct 30fps cadence. 1080p120/4K120
-still bypass the clamp. Only required on OxygenOS 16.0.8.301 and later,
-where the native encoder honors the time-lapse capture rate.
 ---
- smali_classes12/com/oplus/camera/module/a.smali | 13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+ .../com/oplus/camera/module/a.smali           | 22 +++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
 diff --git a/smali_classes12/com/oplus/camera/module/a.smali b/smali_classes12/com/oplus/camera/module/a.smali
-index 6c7d960..2e49da8 100644
+index 4c12e49a..246c0712 100644
 --- a/smali_classes12/com/oplus/camera/module/a.smali
 +++ b/smali_classes12/com/oplus/camera/module/a.smali
-@@ -30112,10 +30112,19 @@
+@@ -31932,6 +31932,28 @@
  
-     invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+     :cond_a12_ri_8k
  
--    move-result v0
-+    move-result v1
++    invoke-virtual {p0}, Lek/u0;->F6()Ljava/lang/String;
 +
-+    if-nez v1, :cond_30fps
++    move-result-object v0
 +
 +    const-string v1, "video_size_720p"
 +
-+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
++    invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
 +
-+    move-result v1
++    move-result v0
++
++    if-eqz v0, :cond_a12_ri_base
++
++    const-wide/high16 v0, 0x403e000000000000L
++
++    invoke-static {v0, v1}, Ljava/lang/Double;->valueOf(D)Ljava/lang/Double;
++
++    move-result-object p0
++
++    return-object p0
++
++    :cond_a12_ri_base
++
+     .line 1
+     invoke-virtual {p0}, Lcom/oplus/camera/module/a;->r()Z
  
--    if-eqz v0, :cond_8k
-+    if-eqz v1, :cond_8k
- 
-+    :cond_30fps
-     const-wide/high16 v0, 0x403e000000000000L    # 30.0
- 
-     invoke-static {v0, v1}, Ljava/lang/Double;->valueOf(D)Ljava/lang/Double;
 -- 
 2.55.0
 

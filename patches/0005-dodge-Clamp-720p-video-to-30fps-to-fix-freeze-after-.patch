@@ -1,101 +1,87 @@
-From 29397e431a85ef1087fbc6e660dc242b0208e7ae Mon Sep 17 00:00:00 2001
+From f1c1b71c1e5ad716c771b72aa37257b846b6fd85 Mon Sep 17 00:00:00 2001
 From: Hecheng Yu <kde-yyds@qq.com>
 Date: Sat, 1 Aug 2026 14:13:45 +0800
-Subject: [PATCH 5/7] dodge: Clamp 720p video to 30fps to fix freeze after
+Subject: [PATCH 5/8] dodge: Clamp 720p video to 30fps to fix freeze after
  using 4K120
 
 Same stale-fps problem as the 8K fix, but for 720p. 720p is the smallest
 resolution on the rear main camera and, like 8K, only supports 30fps. Once
 120fps is selected at 1080p/4K the app's fps state stays 120 when switching
-to 720p, and the MediaRecorder is configured for 1280x720@120 - which the
-video core rejects, causing the same preview freeze on OxygenOS 16.0.8.301.
-
-Clamp to 30fps at the same three recorder configuration points, gated on
-the 720p width (0x500) in addition to the 8K width (0x1e00):
-
-  u0.A(II)                 re-apply 30fps when setVideoSize sees 1280 width
-  u0.v(CamcorderProfile)   clamp profile.videoFrameRate to 30 at 1280 width
-  g.buildSession           send video_30fps for the session at video_size_720p
-
-The 8K branches from the earlier patch are preserved. 1080p120/4K120 are
-still untouched. After this patch, 720p30 records cleanly when coming from
-4K120.
-
-Note: the 720p cap is intentionally mode-gated to commonVideo only; without
-that, 720p 240/480fps slow motion would be broken (see the last patch).
 ---
- smali_classes12/ak/u0.smali | 24 ++++++++++++++++++++++++
- smali_classes28/ja/g.smali  | 13 +++++++++++--
- 2 files changed, 35 insertions(+), 2 deletions(-)
+ smali_classes12/ck/u0.smali | 26 ++++++++++++++++++++++++++
+ smali_classes29/la/e.smali  | 15 +++++++++++++++
+ 2 files changed, 41 insertions(+)
 
-diff --git a/smali_classes12/ak/u0.smali b/smali_classes12/ak/u0.smali
-index f7f9913..4197d71 100644
---- a/smali_classes12/ak/u0.smali
-+++ b/smali_classes12/ak/u0.smali
-@@ -618,6 +618,15 @@
+diff --git a/smali_classes12/ck/u0.smali b/smali_classes12/ck/u0.smali
+index 74f54188..dc91fa21 100644
+--- a/smali_classes12/ck/u0.smali
++++ b/smali_classes12/ck/u0.smali
+@@ -618,6 +618,16 @@
  .method public final A(II)V
      .locals 2
  
 +    const/16 v0, 0x500
 +
-+    if-ne p1, v0, :cond_720
++    if-ne p1, v0, :cond_a12_720_done
 +
 +    const/16 v0, 0x1e
 +
-+    invoke-virtual {p0, v0}, Lak/u0;->y(I)V
++    invoke-virtual {p0, v0}, Lck/u0;->y(I)V
 +
-+    :cond_720
++    :cond_a12_720_done
++
      const/16 v0, 0x1e00
  
-     if-lt p1, v0, :cond_8k
-@@ -6876,6 +6885,21 @@
+     if-lt p1, v0, :cond_a12_8k
+@@ -6879,6 +6889,22 @@
  
      iget v0, p1, Landroid/media/CamcorderProfile;->videoFrameWidth:I
  
 +    const/16 v1, 0x500
 +
-+    if-ne v0, v1, :cond_720
++    if-ne v0, v1, :cond_a12_profile_720_done
 +
 +    iget v0, p1, Landroid/media/CamcorderProfile;->videoFrameRate:I
 +
 +    const/16 v1, 0x1e
 +
-+    if-le v0, v1, :cond_720
++    if-le v0, v1, :cond_a12_profile_720_done
 +
 +    iput v1, p1, Landroid/media/CamcorderProfile;->videoFrameRate:I
 +
-+    :cond_720
++    :cond_a12_profile_720_done
++
 +    iget v0, p1, Landroid/media/CamcorderProfile;->videoFrameWidth:I
 +
      const/16 v1, 0x1e00
  
-     if-lt v0, v1, :cond_8k
-diff --git a/smali_classes28/ja/g.smali b/smali_classes28/ja/g.smali
-index cd90b8b..c833d87 100644
---- a/smali_classes28/ja/g.smali
-+++ b/smali_classes28/ja/g.smali
-@@ -1877,10 +1877,19 @@
+     if-lt v0, v1, :cond_a12_profile_done
+diff --git a/smali_classes29/la/e.smali b/smali_classes29/la/e.smali
+index 9cd68c04..fd9e7766 100644
+--- a/smali_classes29/la/e.smali
++++ b/smali_classes29/la/e.smali
+@@ -1881,6 +1881,21 @@
  
-     invoke-virtual {v2, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+     move-result-object v14
  
--    move-result v1
-+    move-result v2
++    const-string v1, "video_size_720p"
 +
-+    if-nez v2, :cond_30fps
++    invoke-virtual {v1, v14}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
 +
-+    const-string v2, "video_size_720p"
++    move-result v14
 +
-+    invoke-virtual {v2, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
++    if-eqz v14, :cond_a12_fps_8k_check
 +
-+    move-result v2
++    const-string v12, "video_30fps"
++
++    :cond_a12_fps_8k_check
++    invoke-virtual/range {p0 .. p0}, Lla/e;->p1()Ljava/lang/String;
++
++    move-result-object v14
++
+     const-string v1, "video_size_8k"
  
--    if-eqz v1, :cond_24
-+    if-eqz v2, :cond_24
- 
-+    :cond_30fps
-     const-string v12, "video_30fps"
- 
-     :cond_24
+     invoke-virtual {v1, v14}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
 -- 
 2.55.0
 
