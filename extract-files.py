@@ -61,6 +61,19 @@ blob_fixups = {
     'system_ext/lib64/libAPSClient-cmd-jni-extension.oplus.so': blob_fixup()
         .binary_regex_replace(b'libHeifEncoderWrapper\\.so', b'xibHeifEncoderWrapper.so')
         .binary_regex_replace(b'libNativeWinBuffExchange\\.so', b'xibNativeWinBuffExchange.so'),
+    'system_ext/lib64/libNativeWinBuffExchange.so': blob_fixup()
+        # The Android 16 blob passes the release fence in x5, matching the
+        # legacy five-argument IGraphicBufferConsumer ABI. Android 17's
+        # bq_gl_fence_cleanup ABI takes the fence in x3 instead. These are the
+        # two releaseBuffer call sites in exchange/attachHardwareBuffer.
+        .sig_replace(
+            'E3 03 1F AA 08 25 40 F9',
+            'E3 03 05 AA 08 25 40 F9',
+        )
+        .sig_replace(
+            'E3 03 1F AA 08 25 40 F9',
+            'E3 03 05 AA 08 25 40 F9',
+        ),
     'system_ext/lib64/libcsextimpl.so': blob_fixup()
         .replace_needed('android.hardware.camera.device-V3-ndk.so', 'android.hardware.camera.device-V4-ndk.so')
         .replace_needed('android.hardware.camera.provider-V3-ndk.so', 'android.hardware.camera.provider-V4-ndk.so')
