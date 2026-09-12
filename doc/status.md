@@ -21,7 +21,7 @@
 - [x] Preview renders
 - [x] Lens switch and zoom works
 - [x] All formats with SDR color space
-- [ ] HDR Dolby Vision
+- [x] HDR Dolby Vision
 - [x] EIS for ultra wide camera
 - [x] HIS (OIS+EIS) for main camera
 - [x] HIS (OIS+EIS) for telephoto camera
@@ -38,7 +38,7 @@
 - [x] Lens switch works
 - [x] Effects like blur works
 - [x] Hasselblad Pop-Up window shows
-- [ ] Can take photo and save to file
+- [x] Can take photo and save to file
 ## Slow Motion
 - [x] Preview renders
 - [x] All formats (720p/1080p 240fps/480fps) works
@@ -66,4 +66,14 @@
 - [x] Filters take effect
 - [x] Can take photo and save
 ## Other Modes
+- [x] Night
+- [x] Hi-Res
+- [x] Panorama
+- [x] Pro Video
+- [x] Slow-Motion
+- [x] Time-Lapse
+- [x] Long Exposure
+- [x] Dual-View Video
+- [x] Text
+- [x] Tilt-Shift
 - [ ] Untested or broken
