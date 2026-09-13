@@ -1,7 +1,7 @@
 ## All proprietary files from this list, unless pinned and noted otherwise,
 ## are from Oneplus 12 (CPH2573_11_A.01, Oplus 16.1.0)
 
-my_product/app/OplusCamera/OplusCamera.apk:system_ext/priv-app/OplusCamera/OplusCamera.apk;OVERRIDES=Camera2,GoogleCameraGo
+my_product/app/OplusCamera/OplusCamera.apk:system_ext/priv-app/OplusCamera/OplusCamera.apk;OVERRIDES=Aperture,Camera2,GoogleCameraGo
 my_product/etc/camera/engineer_camera_config:product/etc/camera/engineer_camera_config
 my_product/lib64/libAPSClient-alog-jni.so:system_ext/lib64/libAPSClient-alog-jni.so
 my_product/lib64/libAPSClient-cmd-jni.so:system_ext/lib64/libAPSClient-cmd-jni.so
