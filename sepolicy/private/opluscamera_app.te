@@ -34,6 +34,7 @@ allow opluscamera_app mediaserver_service:service_manager find;
 allow opluscamera_app radio_service:service_manager find;
 allow opluscamera_app vr_manager_service:service_manager find;
 allow opluscamera_app nfc_service:service_manager find;
+allow opluscamera_app linearmotor_vibrator_service:service_manager find;
 
 
 #  system_server UDP socket (same as platform_app)
